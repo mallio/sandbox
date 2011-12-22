@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<!-- Somewhat copied from html5boilerplate.com -->
+<html class='no-js'>
+<head>
+    <meta charset="utf-8">
+    <!-- Force newest IE renderer, or Chrome Frame if installed -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    
+    <title>Animator</title>
+    
+    <meta name="description" content="">
+    <meta name="author" content="">
+    
+    <!-- For mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="css/normalizer.css">
+    <link rel="stylesheet" href="css/smoothness/jquery-ui-1.8.16.custom.css">
+    <link rel="stylesheet" href="css/animator.css">
+    
+    <!-- Replace with custom min version -->
+    <script src="js/modernizr.js"></script>
+    <script src="js/prefix-free.min.js"></script>
+</head>
+<body>
+    <form id='properties'>
+        <div class='property'>
+            <label for='id'>ID:</label> <input id='id' name='id' type='text' />
+        </div>
+        <div class='property'>
+            <label for='height'>Height:</label> <input id='height' name='height' type='number' />px
+        </div>
+        <div class='property'>
+            <label for='width'>Width:</label> <input id='width' name='width' type='number' />px
+        </div>
+        <div class='property'>
+            <label for='top'>Top:</label> <input id='top' name='top' type='number' />px
+        </div>
+        <div class='property'>
+            <label for='height'>Left:</label> <input id='left' name='left' type='number' />px
+        </div>
+    </form>
+    
+    <button id='create-box'>New Box</button>
+    
+    <div id='canvas'>
+    
+    </div>
+    
+    
+    <!-- Bottom loading js for performance -->
+    <script src="js/jquery-1.7.1.min.js"></script>
+    <script src="js/jquery-ui-1.8.16.custom.min.js"></script>
+    <script src="js/underscore.min.js"></script>
+    <script src="js/animator.js"></script>
+</body>
+</html>
