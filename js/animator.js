@@ -161,6 +161,33 @@
       return _results;
     };
 
+    AnimBox.prototype.generateCss = function() {
+      var css, frame, id, prefix, prop, props, type, value, _i, _len, _ref, _ref2;
+      css = "";
+      _ref = ['-webkit-', '-moz-', '-ms-', '-o-', ''];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        prefix = _ref[_i];
+        id = this.el().attr('id');
+        css += "#" + id + " {" + prefix + "animation: " + prefix + id + "-animation 5s 2s ease infinite alternate}\n";
+        css += "@" + prefix + "keyframes " + prefix + id + "-animation {\n";
+        _ref2 = this.properties;
+        for (frame in _ref2) {
+          props = _ref2[frame];
+          css += "\t" + frame + "%{\n";
+          for (prop in props) {
+            value = props[prop];
+            type = AnimBox.propTypes[prop];
+            if (type && type.access === 'css') {
+              css += "\t\t" + prop + ": " + (type.format(value)) + ";\n";
+            }
+          }
+          css += "\t}\n";
+        }
+        css += "}\n";
+      }
+      return css;
+    };
+
     _onDrag = function(e, ui) {
       var box;
       box = ui.helper.data('object');
@@ -199,11 +226,27 @@
       e.stopPropagation();
       return selectBox($(this));
     });
-    return $('#create-box').click(function() {
+    $('#create-box').click(function() {
       var box;
       box = new AnimBox();
       $('#canvas').append(box.el());
       return selectBox(box.el());
+    });
+    return $('#show-animation').click(function() {
+      var $iframe, boxCss, boxHtml;
+      boxHtml = "";
+      boxCss = "";
+      $('.anim-box').each(function() {
+        var box, id;
+        box = $(this).data('object');
+        id = box.get('id');
+        boxHtml += "<div id='" + id + "'></div>";
+        return boxCss += box.generateCss();
+      });
+      return $iframe = $('<iframe src="animator-frame.html" />').appendTo(document.body).load(function() {
+        $iframe.contents().find('#custom').html(boxCss);
+        return $iframe.contents().find('#canvas').html(boxHtml);
+      });
     });
   });
 

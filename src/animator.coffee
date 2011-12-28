@@ -108,6 +108,23 @@ class AnimBox
         
         for prop, value of @properties[frame]
             @set(prop, value)
+            
+    generateCss: ->
+        css = ""
+        for prefix in ['-webkit-', '-moz-', '-ms-', '-o-', '']
+            id = @el().attr('id')
+            css += "##{id} {#{prefix}animation: #{prefix}#{id}-animation 5s 2s ease infinite alternate}\n"
+            css += "@#{prefix}keyframes #{prefix}#{id}-animation {\n"
+            for frame, props of @properties
+                css+= "\t#{frame}%{\n"
+                for prop, value of props
+                    type = AnimBox.propTypes[prop]
+                    if  type && type.access == 'css'
+                        css += "\t\t#{prop}: #{type.format(value)};\n"
+                css+= "\t}\n"
+            css += "}\n"
+        return css
+        
         
     
     #==============
@@ -134,14 +151,26 @@ $(->
         $el.addClass('selected')
         form.bind($el.data('object'))
     
-    $('#canvas').on('mousedown', '.anim-box', (e) ->
+    $('#canvas').on 'mousedown', '.anim-box', (e) ->
         e.stopPropagation()
         selectBox($(this))
-    )
     
-    $('#create-box').click(->
+    
+    $('#create-box').click ->
         box = new AnimBox();
         $('#canvas').append(box.el())
         selectBox(box.el())
-    );
+    
+    
+    $('#show-animation').click ->
+        boxHtml = ""
+        boxCss = ""
+        $('.anim-box').each ->
+            box = $(this).data('object');
+            id = box.get('id')
+            boxHtml += "<div id='#{id}'></div>"
+            boxCss += box.generateCss()
+        $iframe = $('<iframe src="animator-frame.html" />').appendTo(document.body).load ->
+            $iframe.contents().find('#custom').html(boxCss)
+            $iframe.contents().find('#canvas').html(boxHtml)
 )
