@@ -6,12 +6,10 @@
     function PropertyForm() {
       var form;
       form = this;
-      this.fields = $('#properties input').on('change', function() {
+      this.fields = $('#properties .property-field').val('').on('change', function() {
         var $field, prop;
         $field = $(this);
-        if ($field.attr('id') === 'current-frame') {
-          return this.currentFrame = $field.val();
-        } else if (form.box) {
+        if (form.box) {
           prop = $field.attr('id');
           return form.box.set(prop, $field.val(), {
             fromForm: true
@@ -20,7 +18,10 @@
           return $field.val('');
         }
       });
-      this.fields.val('');
+      $('#current-frame').val(0).on('change', function() {
+        form.currentFrame = $(this).val();
+        return AnimBox.setCurrentFrame(form.currentFrame);
+      });
     }
 
     PropertyForm.prototype.box = null;
@@ -70,7 +71,7 @@
     AnimBox.setCurrentFrame = function(frame) {
       this.currentFrame = frame;
       return $('.anim-box').each(function() {
-        return $(this).data('object').loadFrame(this.currentFrame);
+        return $(this).data('object').loadFrame(frame);
       });
     };
 
@@ -128,7 +129,9 @@
           this.el()[type.access](prop, type.format(value));
         }
       }
-      if (update.fromCanvas) return this.el().trigger('propChange', [prop, value]);
+      if (update.fromCanvas && this.selected()) {
+        return this.el().trigger('propChange', [prop, value]);
+      }
     };
 
     AnimBox.prototype.get = function(prop) {
@@ -136,18 +139,24 @@
       return (_base = this.properties[AnimBox.currentFrame])[prop] || (_base[prop] = (type = AnimBox.propTypes[prop]) ? this.el()[type.access](prop) : null);
     };
 
+    AnimBox.prototype.selected = function() {
+      return this.el().is('.selected');
+    };
+
     AnimBox.prototype.loadFrame = function(frameToLoad) {
-      var frame, lowerFrames, props, _ref, _results;
-      lowerFrames = {};
+      var frame, lowerFrames, prop, props, value, _ref, _ref2, _results;
+      lowerFrames = [];
       _ref = this.properties;
-      _results = [];
       for (frame in _ref) {
         props = _ref[frame];
-        if (frame <= frameToLoad) {
-          _results.push(lowerFrames.push(frame));
-        } else {
-          _results.push(void 0);
-        }
+        if (parseInt(frame) <= parseInt(frameToLoad)) lowerFrames.push(frame);
+      }
+      frame = Math.max.apply(Math, lowerFrames);
+      _ref2 = this.properties[frame];
+      _results = [];
+      for (prop in _ref2) {
+        value = _ref2[prop];
+        _results.push(this.set(prop, value));
       }
       return _results;
     };

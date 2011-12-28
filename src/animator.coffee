@@ -4,17 +4,18 @@
 class PropertyForm
     constructor: ->
         form = this
-        @fields = $('#properties input').on 'change', ->
+        @fields = $('#properties .property-field').val('').on 'change', ->
             $field = $(this)
-            if $field.attr('id') == 'current-frame'
-                @currentFrame = $field.val()
-            else if form.box
+            if form.box
                 prop = $field.attr('id')
                 form.box.set(prop, $field.val(), fromForm:true)
             else
                 $field.val('')
-        @fields.val('')
-    
+        
+        $('#current-frame').val(0).on 'change', -> 
+            form.currentFrame = $(this).val()
+            AnimBox.setCurrentFrame(form.currentFrame)
+        
     box: null
     
     currentFrame: 0
@@ -49,7 +50,7 @@ class AnimBox
     @setCurrentFrame: (frame) ->
         @currentFrame = frame
         $('.anim-box').each ->
-            $(this).data('object').loadFrame(@currentFrame)
+            $(this).data('object').loadFrame(frame)
     
     _formats = {
         normal: (s) -> s
@@ -86,7 +87,7 @@ class AnimBox
             if type = AnimBox.propTypes[prop]
                 @el()[type.access](prop, type.format(value))
         
-        if update.fromCanvas
+        if update.fromCanvas && @selected()
             @el().trigger('propChange', [prop, value])
     
     get: (prop) ->
@@ -94,12 +95,19 @@ class AnimBox
             if type = AnimBox.propTypes[prop]
                 @el()[type.access](prop)
             else null
+            
+    selected: ->
+        @el().is('.selected')
     
     loadFrame: (frameToLoad) ->
-        lowerFrames = {}
+        lowerFrames = []
         for frame, props of @properties
-            if frame <= frameToLoad
+            if parseInt(frame) <= parseInt(frameToLoad)
                 lowerFrames.push(frame)
+        frame = Math.max.apply(Math, lowerFrames)
+        
+        for prop, value of @properties[frame]
+            @set(prop, value)
         
     
     #==============
