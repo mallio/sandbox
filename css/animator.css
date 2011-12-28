@@ -24,3 +24,6 @@ html, body {
   width: 25px;
   border: 1px solid #000;
   background-color: #FFF; }
+
+.selected {
+  outline: #f00 dotted thin; }

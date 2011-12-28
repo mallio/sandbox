@@ -1,16 +1,17 @@
 (function() {
   var AnimBox, PropertyForm;
-  var __hasProp = Object.prototype.hasOwnProperty, __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (__hasProp.call(this, i) && this[i] === item) return i; } return -1; };
 
   PropertyForm = (function() {
 
     function PropertyForm() {
       var form;
       form = this;
-      this.fields = $('#properties input').change(function() {
+      this.fields = $('#properties input').on('change', function() {
         var $field, prop;
         $field = $(this);
-        if (form.box) {
+        if ($field.attr('id') === 'current-frame') {
+          return this.currentFrame = $field.val();
+        } else if (form.box) {
           prop = $field.attr('id');
           return form.box.set(prop, $field.val(), {
             fromForm: true
@@ -24,12 +25,14 @@
 
     PropertyForm.prototype.box = null;
 
+    PropertyForm.prototype.currentFrame = 0;
+
     PropertyForm.prototype.bind = function(box) {
       var prop, value, _ref;
       var _this = this;
       if (this.box) this.unbind();
       this.box = box;
-      _ref = this.box.properties;
+      _ref = this.box.properties[this.currentFrame];
       for (prop in _ref) {
         value = _ref[prop];
         $('#' + prop).val(value);
@@ -50,23 +53,61 @@
   })();
 
   AnimBox = (function() {
-    var _onDrag, _onResize;
+    var _formats, _onDrag, _onResize;
 
     function AnimBox(id) {
       var _base;
       this.id = id;
       this.properties = {};
-      (_base = this.properties)['id'] || (_base['id'] = "box-" + AnimBox.nextId++);
+      this.properties[AnimBox.currentFrame] = {};
+      (_base = this.properties[AnimBox.currentFrame])['id'] || (_base['id'] = "box-" + AnimBox.nextId++);
     }
 
     AnimBox.nextId = 0;
 
-    AnimBox.htmlAttributes = ['id'];
+    AnimBox.currentFrame = 0;
 
-    AnimBox.cssProperties = ['top', 'left', 'height', 'width'];
+    AnimBox.setCurrentFrame = function(frame) {
+      this.currentFrame = frame;
+      return $('.anim-box').each(function() {
+        return $(this).data('object').loadFrame(this.currentFrame);
+      });
+    };
+
+    _formats = {
+      normal: function(s) {
+        return s;
+      },
+      pixel: function(s) {
+        return "" + s + "px";
+      }
+    };
+
+    AnimBox.propTypes = {
+      id: {
+        access: 'attr',
+        format: _formats.normal
+      },
+      top: {
+        access: 'css',
+        format: _formats.pixel
+      },
+      left: {
+        access: 'css',
+        format: _formats.pixel
+      },
+      height: {
+        access: 'css',
+        format: _formats.pixel
+      },
+      width: {
+        access: 'css',
+        format: _formats.pixel
+      }
+    };
 
     AnimBox.prototype.el = function() {
-      return this._el || (this._el = $('<div id="' + this.id + '" class="anim-box" />').data('object', this).draggable({
+      return this._el || (this._el = $('<div id="' + this.properties.id + '" class="anim-box" />').data('object', this).draggable({
         drag: _onDrag
       }).resizable({
         resize: _onResize
@@ -74,26 +115,41 @@
     };
 
     AnimBox.prototype.set = function(prop, value, update) {
+      var type, _base, _name;
       if (update == null) {
         update = {
           fromForm: true,
           fromCanvas: true
         };
       }
-      this.properties[prop] = value;
+      ((_base = this.properties)[_name = AnimBox.currentFrame] || (_base[_name] = {}))[prop] = value;
       if (update.fromForm) {
-        if (__indexOf.call(AnimBox.htmlAttributes, prop) >= 0) {
-          this.el().attr(prop, value);
-        } else if (__indexOf.call(AnimBox.cssProperties, prop) >= 0) {
-          this.el().css(prop, value);
+        if (type = AnimBox.propTypes[prop]) {
+          this.el()[type.access](prop, type.format(value));
         }
       }
       if (update.fromCanvas) return this.el().trigger('propChange', [prop, value]);
     };
 
     AnimBox.prototype.get = function(prop) {
-      var _base;
-      return (_base = this.properties)[prop] || (_base[prop] = __indexOf.call(AnimBox.htmlAttributes, prop) >= 0 ? this.el().attr(prop) : __indexOf.call(AnimBox.cssProperties, prop) >= 0 ? this.el().css(prop) : null);
+      var type, _base;
+      return (_base = this.properties[AnimBox.currentFrame])[prop] || (_base[prop] = (type = AnimBox.propTypes[prop]) ? this.el()[type.access](prop) : null);
+    };
+
+    AnimBox.prototype.loadFrame = function(frameToLoad) {
+      var frame, lowerFrames, props, _ref, _results;
+      lowerFrames = {};
+      _ref = this.properties;
+      _results = [];
+      for (frame in _ref) {
+        props = _ref[frame];
+        if (frame <= frameToLoad) {
+          _results.push(lowerFrames.push(frame));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
     };
 
     _onDrag = function(e, ui) {
@@ -123,19 +179,22 @@
   })();
 
   $(function() {
-    var form;
+    var form, selectBox;
     form = new PropertyForm();
+    selectBox = function($el) {
+      $('.selected').removeClass('selected');
+      $el.addClass('selected');
+      return form.bind($el.data('object'));
+    };
     $('#canvas').on('mousedown', '.anim-box', function(e) {
-      var box;
       e.stopPropagation();
-      box = $(this).data('object');
-      return form.bind(box);
+      return selectBox($(this));
     });
     return $('#create-box').click(function() {
       var box;
       box = new AnimBox();
       $('#canvas').append(box.el());
-      return form.bind(box);
+      return selectBox(box.el());
     });
   });
 

@@ -4,9 +4,11 @@
 class PropertyForm
     constructor: ->
         form = this
-        @fields = $('#properties input').change ->
+        @fields = $('#properties input').on 'change', ->
             $field = $(this)
-            if form.box
+            if $field.attr('id') == 'current-frame'
+                @currentFrame = $field.val()
+            else if form.box
                 prop = $field.attr('id')
                 form.box.set(prop, $field.val(), fromForm:true)
             else
@@ -14,11 +16,13 @@ class PropertyForm
         @fields.val('')
     
     box: null
+    
+    currentFrame: 0
         
     bind: (box) ->
         @unbind() if @box
         @box = box
-        for prop, value of @box.properties
+        for prop, value of @box.properties[@currentFrame]
             $('#'+prop).val(value)
         @box.el().on('propChange', (e,prop,value) => $('#'+prop).val(value))
      
@@ -26,8 +30,8 @@ class PropertyForm
         @box.el().off('propChange')
         @box = null
         @fields.val('')
-        
- 
+
+
 #######################################
 # AnimBox
 #  - an animatable box object
@@ -35,38 +39,68 @@ class PropertyForm
 class AnimBox
     constructor: (@id) ->
         @properties = {}
-        @properties['id'] or= "box-" + AnimBox.nextId++
+        @properties[AnimBox.currentFrame] = {}
+        @properties[AnimBox.currentFrame]['id'] or= "box-" + AnimBox.nextId++
     
     @nextId: 0
     
-    @htmlAttributes: ['id']
+    @currentFrame: 0
     
-    @cssProperties: ['top', 'left', 'height', 'width']
+    @setCurrentFrame: (frame) ->
+        @currentFrame = frame
+        $('.anim-box').each ->
+            $(this).data('object').loadFrame(@currentFrame)
+    
+    _formats = {
+        normal: (s) -> s
+        pixel: (s) -> "#{s}px"
+    }
+    
+    @propTypes: {
+        id: 
+            access: 'attr'
+            format: _formats.normal
+        top:
+            access: 'css'
+            format: _formats.pixel
+        left:
+            access: 'css'
+            format: _formats.pixel
+        height:
+            access: 'css'
+            format: _formats.pixel
+        width:
+            access: 'css'
+            format: _formats.pixel
+    }
     
     el: ->
         @_el or= 
-            $('<div id="'+@id+'" class="anim-box" />').data('object', this)
+            $('<div id="'+@properties.id+'" class="anim-box" />').data('object', this)
                 .draggable(drag: _onDrag)
                 .resizable(resize: _onResize);
         
     set: (prop, value, update = {fromForm:true, fromCanvas:true}) ->
-        @properties[prop] = value
+        (@properties[AnimBox.currentFrame] or= {})[prop] = value
         if update.fromForm
-            if prop in AnimBox.htmlAttributes
-                @el().attr(prop, value)
-            else if prop in AnimBox.cssProperties
-                @el().css(prop, value)
+            if type = AnimBox.propTypes[prop]
+                @el()[type.access](prop, type.format(value))
         
         if update.fromCanvas
             @el().trigger('propChange', [prop, value])
     
     get: (prop) ->
-        @properties[prop] or=
-            if prop in AnimBox.htmlAttributes
-                @el().attr(prop)
-            else if prop in AnimBox.cssProperties
-                @el().css(prop) 
+        @properties[AnimBox.currentFrame][prop] or=
+            if type = AnimBox.propTypes[prop]
+                @el()[type.access](prop)
             else null
+    
+    loadFrame: (frameToLoad) ->
+        lowerFrames = {}
+        for frame, props of @properties
+            if frame <= frameToLoad
+                lowerFrames.push(frame)
+        
     
     #==============
     # Private
@@ -81,21 +115,25 @@ class AnimBox
         box.set('width', ui.size.width, fromCanvas:true)
         box.set('height', ui.size.height, fromCanvas:true)
         
-        
 #######################################
 # Initialization
 #######################################
 $(->
     form = new PropertyForm()
+    
+    selectBox = ($el) ->
+        $('.selected').removeClass('selected')
+        $el.addClass('selected')
+        form.bind($el.data('object'))
+    
     $('#canvas').on('mousedown', '.anim-box', (e) ->
         e.stopPropagation()
-        box = $(this).data('object')
-        form.bind(box)
+        selectBox($(this))
     )
     
     $('#create-box').click(->
         box = new AnimBox();
         $('#canvas').append(box.el())
-        form.bind(box)
+        selectBox(box.el())
     );
 )
