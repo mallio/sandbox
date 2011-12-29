@@ -35,7 +35,7 @@ body {
     left: 0;
     height: 100%;
     width: 100%;
-    background-color: #000;
+    background-color: #001A57;
     opacity: 0;
     animation: night 30s infinite alternate;
 }
@@ -49,6 +49,32 @@ body {
     }
     100% {
         opacity: 1;
+    }
+}
+
+#darkness {
+    background-color: #000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    animation: darkness 30s infinite alternate;
+}
+
+@keyframes darkness {
+    0% {
+        opacity: 0;
+    }
+    40% {
+        opacity: 0;
+    }
+    60% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 0.75;
     }
 }
 
@@ -66,24 +92,24 @@ body {
 
 @keyframes sun {
     0% {
-        top: 0%;
-        background-color: #fff;
+        top: -20%;
+        background-color: #ffa;
         box-shadow: 0 0 95px 70px #fff;
     }
     20% {
         top: 30%;
         background-color: #ffa;
-        box-shadow: 0 0 55px 45px #ffa;
+        box-shadow: 0 0 55px 45px #fff;
     }
     40% {
-        top: 50%;
+        top: 60%;
         background-color: orangered;
-        box-shadow: 0 0 20px 20px orangered;
+        box-shadow: 0 0 orangered;
     }
     100% {
         top: 100%;
         background-color: orangered;
-        box-shadow: 0 0 20px 20px orangered;
+        box-shadow: 0 0 orangered;
     }
 }
 
