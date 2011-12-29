@@ -1,0 +1,96 @@
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    background-color: #f91400; /* final color on sunset gradient */
+}
+
+#sky {
+    height: 100%;
+    overflow: hidden;
+}
+
+#sunset {
+    position: relative;
+    height: 3000px;
+    background: -moz-linear-gradient(top, #118efc 0%, #b7d6f7 34%, #ed9f04 50%, #f91400 78%);
+    animation: sunset 30s linear infinite alternate;
+}
+
+@keyframes sunset {
+    0% {
+      top: 0px;
+    }
+    100% {
+      top: -3000px;
+    }
+}
+
+#night {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: #000;
+    opacity: 0;
+    animation: night 30s infinite alternate;
+}
+
+@keyframes night {
+    0% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+#sun {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    height: 100px;
+    width: 100px;
+    background-color: #fff;
+    border-radius: 50px;
+    box-shadow: 0 0 95px 70px #fff;
+    animation: sun 30s linear infinite alternate;
+}
+
+@keyframes sun {
+    0% {
+        top: 0%;
+        background-color: #fff;
+        box-shadow: 0 0 95px 70px #fff;
+    }
+    20% {
+        top: 30%;
+        background-color: #ffa;
+        box-shadow: 0 0 55px 45px #ffa;
+    }
+    40% {
+        top: 50%;
+        background-color: orangered;
+        box-shadow: 0 0 20px 20px orangered;
+    }
+    100% {
+        top: 100%;
+        background-color: orangered;
+        box-shadow: 0 0 20px 20px orangered;
+    }
+}
+
+#earth {
+    position: fixed;
+    width: 100%;
+    height: 33%;
+    bottom: 0;
+    background-color: green;
+}
